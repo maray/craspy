@@ -86,7 +86,7 @@ def _matching_slabs(data, flux, lower, upper):
     The subcube inside the lower and upper points that matches both data cube dimensions.
     """
 
-    data_slab = slab(data, lower, upper)
+    data_slab = _slab(data, lower, upper)
     flow = np.zeros(flux.ndim)
     fup = np.array(flux.shape)
     for i in range(data.ndim):
@@ -94,12 +94,12 @@ def _matching_slabs(data, flux, lower, upper):
             flow[i] = flux.shape[i] - data_slab[i].stop
         if data_slab[i].stop == data.shape[i]:
             fup[i] = data_slab[i].stop - data_slab[i].start
-    flux_slab = slab(flux, flow, fup)
+    flux_slab = _slab(flux, flow, fup)
     return data_slab, flux_slab
 
 def _index_mesh(data, lower=None, upper=None):
     """ Create an meshgrid from indices """
-    sl = slab(data, lower, upper)
+    sl = _slab(data, lower, upper)
     dim = data.ndim
     slices = []
     for i in range(dim):

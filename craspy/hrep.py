@@ -5,8 +5,8 @@ from astropy import log
 
 from .algorithm import Algorithm
 from .data import Data
-from .flux import standarize
-from .homogen import synthesize_bubbles, _precision_from_delta, scat_pix_detect
+from .flux import standarize, rms, create_mould, eighth_mould
+from .homogen import synthesize_bubbles, precision_from_delta, scat_pix_detect,scat_kernel_detect
 
 def _vertical_flux_decomposition(rep,delta,noise,kernel,n_partitions,shape):
     n_rep=len(rep)/n_partitions
@@ -100,19 +100,19 @@ class HRep(Algorithm):
                 spa = np.ceil((np.abs(cube.meta['BMIN'] / cube.meta['CDELT1']) - 1) / 2.0)
                 delta = [1, spa, spa]
         if noise is None:
-            noise = flux._rms(cube.data)
+            noise = _rms(cube.data)
 
         if self.config['KERNEL'] == 'PIXEL':
-            positions,synthetic,residual=scat_pix_detect(cube.data,threshold=snr*noise,full_output=True)
+            positions,synthetic,residual=scat_pix_detect(cube.data,threshold=snr*noise,noise=noise,full_output=True)
 
         if self.config['KERNEL'] == 'METABUBBLE':
 
             # if verbose:
             #     log.info(snr, noise, delta)
-            P = homogen._precision_from_delta(delta, gamma)
-            kernel = flux._create_mould(P, delta)
-            sym = flux._eighth_mould(P, delta)
-            positions, synthetic, residual, energy, elist = homogen.scat_kernel_detect(cube.data,delta=delta,kernel=kernel,threshold=snr*noise,noise=noise,full_output=True,sym=sym,verbose=verbose)
+            P = precision_from_delta(delta, gamma)
+            kernel =create_mould(P, delta)
+            sym = eighth_mould(P, delta)
+            positions, synthetic, residual, energy, elist = scat_kernel_detect(cube.data,delta=delta,kernel=kernel,threshold=snr*noise,noise=noise,full_output=True,sym=sym,verbose=verbose)
         positions = np.array(positions)
         # Pack metadata
         metapack = dict()

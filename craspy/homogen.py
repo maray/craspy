@@ -41,13 +41,13 @@ def _update_energies_sym(residual,energy,ev,ef,lb,ub):
         for delta in dset:
             _update_min_energy(energy,mat,ub,lb,delta)
 
-def _precision_from_delta(delta,clev):
+def precision_from_delta(delta,clev):
     delta=np.array(delta)
     sq_delta=1./(delta*delta)
     P=np.diag(sq_delta)
     return(-2*np.log(clev)*P)
 
-def scat_pix_detect(data,threshold=None,noise=None,upper=None,lower=None,full_output=False):
+def scat_pix_detect(data,threshold,noise,upper=None,lower=None,full_output=False):
     """ Obtain an homogeneous representation using the scattered pixels over a threshold.
 
     This function generates an homogeneous representation by using only those pixels above the threshold. 
@@ -77,8 +77,8 @@ def scat_pix_detect(data,threshold=None,noise=None,upper=None,lower=None,full_ou
     else: 
         inten=data[ff]
     if full_output:
-       residual=np.nan_to_num(data)
-       synthetic=np.zeros(data.shape)
+        residual=np.nan_to_num(data)
+        synthetic=np.zeros(data.shape)
     ntimes=(inten/noise).astype(int)
     center=np.transpose(ff).astype(float)
     positions=[]
@@ -155,7 +155,7 @@ def bubble_detect(data,meta=None,noise=None,threshold=None,delta=None,gamma=0.1,
         threshold=snr_estimation(data,mask=mask,noise=noise)*noise
     if verbose:
         print(threshold,noise,delta)
-    P=_precision_from_delta(delta,gamma)
+    P=precision_from_delta(delta,gamma)
     mould=create_mould(P,delta)
     #equant=mould.sum()*noise
     residual=np.nan_to_num(data)
