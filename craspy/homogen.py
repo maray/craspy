@@ -36,7 +36,11 @@ def _update_energies_sym(residual,energy,ev,ef,lb,ub):
     for i in range(0,ev.size):
         mat=mcb/ev[i]
         d=ef[i]
-        dset=np.array([[1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1],[-1,1,1],[-1,1,-1],[-1,-1,1],[-1,-1,-1]])*d
+        # This is dimension specific
+        if len(residual.shape) == 2:
+            dset=np.array([[1,1],[1,-1],[-1,1],[-1,-1]])*d
+        else:
+            dset=np.array([[1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1],[-1,1,1],[-1,1,-1],[-1,-1,1],[-1,-1,-1]])*d
         dset=np.vstack({tuple(row) for row in dset})
         for delta in dset:
             _update_min_energy(energy,mat,ub,lb,delta)
@@ -104,7 +108,11 @@ def scat_kernel_detect(data,kernel,threshold=None,delta=None,noise=None,upper=No
     if sym != False:
         #(ev, ef) = _eighth_mould(P, delta)
         (ev,ef) = sym
-        _update_energies_sym(residual, energy, ev, ef, lb=(0, 0, 0), ub=residual.shape)
+        # Horrible hack to support 2D images
+        lbz = (0,0,0)
+        if len(data.shape) == 2:
+            lbz = (0,0)
+        _update_energies_sym(residual, energy, ev, ef, lb=lbz, ub=residual.shape)
     else:
         log.error("Non symetrical kernels not supported yet")
         return

@@ -23,6 +23,15 @@ def _vertical_flux_decomposition(rep,delta,noise,kernel,n_partitions,shape):
         img_list.append(img)
     return img_list,vmax
 
+def _get_delta(cube):
+    if cube.meta is None or cube.meta.get('CDELT1') is None:
+        spa = 1.0
+    else:
+        spa = np.ceil((np.abs(cube.meta['BMIN'] / cube.meta['CDELT1']) - 1) / 2.0)
+    naxis = len(cube.data.shape)
+    if naxis == 2:
+        return [spa,spa]
+    return [1, spa, spa]
 
 
 class HRep(Algorithm):
@@ -65,6 +74,7 @@ class HRep(Algorithm):
         if 'GAMMA' not in self.config:
             self.config['GAMMA'] = 0.1
 
+
     def run(self, cube):
         """
             Run the Homogenous Representation algorithm a Data Object.
@@ -77,6 +87,7 @@ class HRep(Algorithm):
             -------
             result : ???
         """
+        naxis = len(cube.data.shape)
         delta = self.config['DELTA']
         noise = self.config['RMS']
         snr = self.config['SNR']
@@ -92,13 +103,10 @@ class HRep(Algorithm):
 
         if snr is None:
             snr = snr_estimation(cube.data, mask=cube.mask, noise=noise)
-
+        
         if delta is None:
-            if cube.meta is None:
-                delta = [1, 1, 1]
-            else:
-                spa = np.ceil((np.abs(cube.meta['BMIN'] / cube.meta['CDELT1']) - 1) / 2.0)
-                delta = [1, spa, spa]
+            delta = _get_delta(cube) 
+
         if noise is None:
             noise = _rms(cube.data)
 
@@ -114,17 +122,22 @@ class HRep(Algorithm):
             sym = eighth_mould(P, delta)
             positions, synthetic, residual, energy, elist = scat_kernel_detect(cube.data,delta=delta,kernel=kernel,threshold=snr*noise,noise=noise,full_output=True,sym=sym,verbose=verbose)
         positions = np.array(positions)
+
         # Pack metadata
         metapack = dict()
-        metapack['DELTAX']=delta[0]
-        metapack['DELTAY'] = delta[1]
-        metapack['DELTAZ'] = delta[2]
+
         metapack['SCALE'] = scale
         metapack['SHIFT'] = shift
         metapack['KERNEL'] = self.config['KERNEL']
         metapack['RMS'] = noise
         metapack['SNR'] = snr
         metapack['GAMMA'] = gamma
-        rep = Table(positions, names=['x','y','z'],meta=metapack)
+        metapack['DELTAX']=delta[0]
+        metapack['DELTAY'] = delta[1]
+        if naxis==2:
+            rep = Table(positions, names=['x','y'],meta=metapack)
+        else:
+            rep = Table(positions, names=['x','y','z'],meta=metapack)
+            metapack['DELTAZ'] = delta[2]
 
         return rep, Data(synthetic,meta=cube.meta,mask=cube.mask,unit=cube.unit,wcs=cube.wcs),Data(residual,meta=cube.meta,mask=cube.mask,unit=cube.unit,wcs=cube.wcs)
