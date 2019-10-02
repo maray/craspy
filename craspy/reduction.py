@@ -11,7 +11,7 @@ from .display import show_subcube
 from .transform import _fix_mask
 from .index import _slab
 from .data import Data
-from .axes import spectral_velocities
+from .axes import spectral_velocities,_get_axis,extent
 
 @support_nddata
 def _moment(data, order, wcs=None, mask=None, unit=None, meta=None, restfrq=None):
@@ -127,9 +127,9 @@ def moment2(data, wcs=None, mask=None, unit=None, meta=None, restfrq=None):
 
 @support_nddata
 def select_region(data, wcs=None, mask=None, unit=None, meta=None,ra_1=None,dec_1=None,ra_2=None,dec_2=None,interactive=False):
-    ra_idx = axes._get_axis(wcs,'RA')
-    dec_idx = axes._get_axis(wcs,'DEC')
-    ext1,ext2 = axes.extent(data, wcs=wcs)
+    ra_idx = _get_axis(wcs,'RA')
+    dec_idx = _get_axis(wcs,'DEC')
+    ext1,ext2 = extent(data, wcs=wcs)
     if ra_1 is None:
         ra_1 = ext1[ra_idx]
         dec_1 = ext1[dec_idx]
@@ -152,7 +152,7 @@ def select_region(data, wcs=None, mask=None, unit=None, meta=None,ra_1=None,dec_
         if data.ndim == 3:
             lower=[0,0,0]
             upper=[0,0,0]
-            freq_idx = axes._get_axis(wcs,'FREQ')
+            freq_idx = _get_axis(wcs,'FREQ')
             lower[freq_idx] = ext1[freq_idx].value
             upper[freq_idx] = ext2[freq_idx].value
         else:
@@ -185,10 +185,10 @@ def select_band(data, wcs=None, mask=None, unit=None, meta=None,freq_1=None,freq
     if data.ndim != 3:
         log.warning("Bandwidth selection available only in 3D data ")
         return None
-    ra_idx = axes._get_axis(wcs,'RA')
-    dec_idx = axes._get_axis(wcs,'DEC')
-    freq_idx = axes._get_axis(wcs,'FREQ')
-    ext1,ext2 = axes.extent(data, wcs=wcs)
+    ra_idx = _get_axis(wcs,'RA')
+    dec_idx = _get_axis(wcs,'DEC')
+    freq_idx = _get_axis(wcs,'FREQ')
+    ext1,ext2 = extent(data, wcs=wcs)
     if freq_1 is None:
         freq_1=ext1[freq_idx]
     if freq_2 is None:
@@ -280,6 +280,7 @@ def cut(data, wcs=None, mask=None, unit=None, meta=None, region=None):
         smask=None
     else:
         smask = mask[mslab]
+    print(wcs)
     newwcs = wcs.slice(mslab, numpy_order=True)
     return Data(scube, wcs=newwcs, unit=unit, mask=smask,meta=meta)
 

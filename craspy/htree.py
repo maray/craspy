@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 from graphviz import Digraph
 import colorsys
 
-import display
-from represent import HRep
+from .homogen import synthesize_bubbles
+from .data import Data
+import craspy.display
+from craspy.hrep import HRep
 
 _clustering_method_dict = {'DBSCAN': lambda param, rep: DBSCAN(eps=param).fit(rep),
                'KMEANS': lambda param, rep: KMeans(n_clusters=param).fit(rep)}
@@ -197,7 +199,7 @@ class HRTree():
         return self.show_tree(node=node)
 
     def show_clumps(self,node=0):
-        display.show_clumps(self,node=node)
+        craspy.display.show_clumps(self,node=node)
 
     def visible_clumps(self,subtree,node):
         n=0

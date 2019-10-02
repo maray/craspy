@@ -3,7 +3,10 @@ from astropy.nddata import support_nddata
 from astropy import log
 import numpy as np
 from astropy.wcs import wcs
+import craspy.axes as axes
 
+from .index import _slab
+from .homogen import synthesize_bubbles
 import matplotlib.pyplot as plt
 
 
@@ -174,7 +177,7 @@ def show_clumps(hrtree,node=0,print_numbers=True):
     hrtree.t_n = 0
     def plotme(key):
         newSyn = np.zeros(shape)
-        newSyn = _synthesize_bubbles(newSyn, hrtree.clumps[key], hrtree.kernel, hrtree.noise, hrtree.delta)
+        newSyn = synthesize_bubbles(newSyn, hrtree.clumps[key], hrtree.kernel, hrtree.noise, hrtree.delta)
         ct = nax.contour(newSyn.sum(axis=(0)), levels=[0.0], alpha=1.0, colors=[color[hrtree.t_n]])
         if print_numbers:
             plt.clabel(ct, fontsize=10, inline=1, fmt={0.0: str(key)})
