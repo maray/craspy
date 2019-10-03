@@ -5,7 +5,7 @@ from astropy import log
 
 from .algorithm import Algorithm
 from .data import Data
-from .flux import standarize, rms, create_mould, eighth_mould
+from .flux import standarize, rms, create_mould, eighth_mould, snr_estimation
 from .homogen import synthesize_bubbles, precision_from_delta, scat_pix_detect,scat_kernel_detect
 
 def _vertical_flux_decomposition(rep,delta,noise,kernel,n_partitions,shape):
@@ -99,16 +99,29 @@ class HRep(Algorithm):
         shift = 0.0
 
         if standar:
+            if verbose:
+                log.info("Standarizing Cube...")
             (cube, scale, shift) = standarize(cube)
 
+        if noise is None:
+            if verbose:
+                log.info("Estimating Noise...")
+            noise = rms(cube.data,mask=cube.mask)
+            if verbose:
+                log.info("Noise = "+str(noise))
+
         if snr is None:
-            snr = snr_estimation(cube.data, mask=cube.mask, noise=noise)
+            if verbose:
+                log.info("Estimating SNR..")
+            snr = snr_estimation(cube.data,mask=cube.mask, noise=noise)
+            if verbose:
+                log.info("SNR="+str(snr))
         
         if delta is None:
+            if verbose:
+                log.info("Computing Delta...")
             delta = _get_delta(cube) 
 
-        if noise is None:
-            noise = _rms(cube.data)
 
         if self.config['KERNEL'] == 'PIXEL':
             positions,synthetic,residual=scat_pix_detect(cube.data,threshold=snr*noise,noise=noise,full_output=True)
@@ -117,9 +130,13 @@ class HRep(Algorithm):
 
             # if verbose:
             #     log.info(snr, noise, delta)
+            if verbose:
+                log.info("Computing Mould...")
             P = precision_from_delta(delta, gamma)
             kernel =create_mould(P, delta)
             sym = eighth_mould(P, delta)
+            if verbose:
+                log.info("Ready to rumble...")
             positions, synthetic, residual, energy, elist = scat_kernel_detect(cube.data,delta=delta,kernel=kernel,threshold=snr*noise,noise=noise,full_output=True,sym=sym,verbose=verbose)
         positions = np.array(positions)
 

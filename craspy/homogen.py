@@ -101,9 +101,12 @@ def scat_pix_detect(data,threshold,noise,upper=None,lower=None,full_output=False
 
 def scat_kernel_detect(data,kernel,threshold=None,delta=None,noise=None,upper=None,lower=None,full_output=False,sym=False,verbose = False):
     residual = np.nan_to_num(data)
+    log.info("Residual copy built");
     energy = residual.copy()
+    log.info("Energy copy built");
     if full_output:
         synthetic = np.zeros(residual.shape)
+        log.info("Synthetic matrix built");
         elist = []
     if sym != False:
         #(ev, ef) = _eighth_mould(P, delta)
@@ -112,6 +115,7 @@ def scat_kernel_detect(data,kernel,threshold=None,delta=None,noise=None,upper=No
         lbz = (0,0,0)
         if len(data.shape) == 2:
             lbz = (0,0)
+        log.info("Populating Energy Matrix for the first time (it might take a while)");
         _update_energies_sym(residual, energy, ev, ef, lb=lbz, ub=residual.shape)
     else:
         log.error("Non symetrical kernels not supported yet")
