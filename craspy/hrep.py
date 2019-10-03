@@ -146,7 +146,7 @@ class HRep(Algorithm):
         metapack['SCALE'] = scale
         metapack['SHIFT'] = shift
         metapack['KERNEL'] = self.config['KERNEL']
-        metapack['RMS'] = noise
+        metapack['NOISE'] = noise
         metapack['SNR'] = snr
         metapack['GAMMA'] = gamma
         metapack['DELTAX']=delta[0]
