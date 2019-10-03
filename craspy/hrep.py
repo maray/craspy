@@ -154,7 +154,7 @@ class HRep(Algorithm):
         if naxis==2:
             rep = Table(positions, names=['x','y'],meta=metapack)
         else:
-            rep = Table(positions, names=['x','y','z'],meta=metapack)
             metapack['DELTAZ'] = delta[2]
+            rep = Table(positions, names=['x','y','z'],meta=metapack)
 
         return rep, Data(synthetic,meta=cube.meta,mask=cube.mask,unit=cube.unit,wcs=cube.wcs),Data(residual,meta=cube.meta,mask=cube.mask,unit=cube.unit,wcs=cube.wcs)
